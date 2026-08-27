@@ -33,7 +33,7 @@ jobs:
       - name: Generate datasets.js
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-                run: rm -f datasets.js && node exportdatasets.mjs && test -s datasets.js
+        run: rm -f datasets.js && node exportdatasets.mjs && test -s datasets.js
 
       # A publish that would wipe most of the catalogue is far more likely to be
       # a bad token, a renamed field or an unchecked box than a real edit. Stop
