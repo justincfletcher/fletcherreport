@@ -1,0 +1,76 @@
+name: Publish datasets
+
+# Regenerates datasets.js from Airtable and commits it, then purges the
+# jsDelivr cache so the change is live in seconds rather than up to 24 hours.
+#
+# Publishing a brand:
+#   1. In Airtable, check "Live on Site" on the manufacturer.
+#   2. Here: Actions → Publish datasets → Run workflow.
+# The scheduled run below also picks it up on its own within a few hours.
+
+on:
+  workflow_dispatch:        # the manual "Run workflow" button
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours, so a forgotten publish still ships
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-datasets   # never let two runs commit over each other
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate datasets.js
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+        run: node scripts/export-datasets.mjs
+
+      # A publish that would wipe most of the catalogue is far more likely to be
+      # a bad token, a renamed field or an unchecked box than a real edit. Stop
+      # and make a human look rather than shipping a gutted site.
+      - name: Guard against a collapse in row count
+        run: |
+          new=$(grep -c '^\[' datasets.js || true)
+          old=$(git show HEAD:datasets.js 2>/dev/null | grep -c '^\[' || echo 0)
+          echo "rows: $old -> $new"
+          if [ "$old" -gt 0 ] && [ "$new" -lt $((old / 2)) ]; then
+            echo "::error::Row count fell from $old to $new (>50% drop). Refusing to publish."
+            exit 1
+          fi
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          if git diff --quiet -- datasets.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No change in datasets.js — nothing to publish."
+            exit 0
+          fi
+          git config user.name  "fletcher-publish"
+          git config user.email "actions@github.com"
+          git add datasets.js
+          git commit -m "Publish datasets.js from Airtable ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # jsDelivr caches @main for up to 24h. Without this the file is committed
+      # but the site keeps serving yesterday's data, which looks like the
+      # publish silently failed.
+      - name: Purge jsDelivr cache
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          curl -sS -X POST https://purge.jsdelivr.net/ \
+            -H 'Content-Type: application/json' \
+            -d '{"path":["/gh/justincfletcher/fletcherreport@main/datasets.js"]}' \
+            | head -c 2000
+          echo
