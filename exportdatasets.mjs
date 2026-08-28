@@ -190,8 +190,9 @@ async function main() {
       axles:        num(f['Axle Count'], `${where} axles`),
       category:     clean(ff['Category']),
       hitch:        clean(ff['Primary Hitch Type']),
-      length:       num(f['Overall Length (ft)'], `${where} length`),
-      deckLen:      num(f['Deck Length (ft)'], `${where} deckLen`),
+      length:       num(f['Deck Length (ft)'], `${where} deck length`)
+                 ?? num(f['Overall Length (ft)'], `${where} length`),
+      deckLen:      null,   /* overall length: collected in Airtable, not shown on the site yet */
       width:        num(f['Deck Width (in)'], `${where} width`),
       axleBrand:    clean(ff['Axle Brand']),
       rating:       num(f['Axle Rating (lbs)'], `${where} axle rating`),
