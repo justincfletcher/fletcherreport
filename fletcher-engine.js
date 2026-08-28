@@ -272,7 +272,8 @@
     updateMoreCount();
   }
 
-  const name=d=>`${d.family} ${d.length}′ ${(d.gvwr/1000).toLocaleString(undefined,{maximumFractionDigits:1})}K`;
+    const name=d=>{const L=d.length??d.deckLen;
+    return[d.family,L!=null?L+'′':null,d.gvwr!=null?(d.gvwr/1000).toLocaleString(undefined,{maximumFractionDigits:1})+'K':null].filter(v=>v!=null).join(' ');};
 
   function tray(){
     const t=document.getElementById('tray');
