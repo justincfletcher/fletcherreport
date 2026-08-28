@@ -1,5 +1,14 @@
 /* Fletcher Report — Trailer Comparison Engine
- * v1.2.0
+ * v1.3.0
+ *
+ * v1.3.0 — model names no longer break on missing data
+ *  - FIX: name() rendered "null′" and "NaN" for any row missing overall length
+ *    or GVWR. Now falls back to deckLen, and omits a segment entirely when both
+ *    are null. Latent on the 5 live brands (0 null lengths); would have hit 93
+ *    of 210 Sure-Trac SKUs on day one.
+ *  - deckLen deliberately NOT promoted to a browse/filter column. Only 355 of
+ *    821 live SKUs have it (Lamar 0/184, MaxxD 0/76), and where present it
+ *    duplicates Overall Length. Revisit only after the length data is settled.
  *
  * v1.2.0 — feedback actually goes somewhere; sidebar trimmed
  *  - Feedback box now submits for real. Two supported targets, in priority order:
