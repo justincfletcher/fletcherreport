@@ -1,4 +1,4 @@
-/* Fletcher Report — generated 2026-10-13T22:26:01.260Z
+/* Fletcher Report — generated 2026-10-14T04:10:17.712Z
  * DO NOT EDIT BY HAND. Written by scripts/export-datasets.mjs from Airtable.
  * 881 models across 6 brands.
  */
